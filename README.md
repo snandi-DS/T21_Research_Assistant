@@ -1,4 +1,4 @@
-# T21 Research Assistant v7
+# T21 Research Assistant
 
 **Publication:** Nandi S, Sundararajan Z, Subirana-Granés M, Espinosa JM, Pividori M, Sullivan KD, Galbraith MD, Costello JC. *An AI-Powered Trisomy 21 Research Assistant.* bioRxiv (2026). doi: [10.64898/2026.06.08.730893](https://www.biorxiv.org/content/10.64898/2026.06.08.730893v1.full)
 
@@ -12,7 +12,7 @@ The system retrieves section-level text from peer-reviewed publications stored i
 
 > **Performance & determinism (Ollama-remote path):** `nemotron-3-super` and `gpt-oss:120b-cloud` are reasoning models. Every Ollama chat call passes **`think=False`** to suppress the hidden chain-of-thought — without it a single synthesis call took **~153 s** (the model generates a large unseen reasoning trace); with it, synthesis runs in seconds. All chat calls also use **greedy decoding** (`temperature=0.0, seed=42, top_k=1, top_p=1.0`) so repeated questions return closely consistent answers. All prompts were also **heavily condensed**: `SYNTH_PROMPT` ~6,700 → ~2,100 tokens (~69%); then a further ~1,627 tokens removed across all prompts (`_JUDGE_SYSTEM`, `_PIPELINE_IMPROVE_SYSTEM`, `lenient_system`, `system_content`, human-message boilerplate) — cutting per-call input processing latency while preserving every behavioral rule.
 
-**Current corpus:** **1,594 open-access original research articles**, published **1970 – September 2026** (earliest indexed paper: PMC6460451, 1970; the "1962" coverage figure quoted in earlier drafts belonged to the superseded May-2026 v7 fetch and no 1962–1969 paper survives the current criteria) — the collection stores only papers that satisfy every criterion, so the stored count, the searchable count, and the `/health`/GUI count are the same number. Derivation from the 2026-09-02 PMC snapshot (`srv/nbs/1_download_ds_papers.ipynb` + `2_embed_and_index_ds_papers.ipynb`): 2,075 snapshot records → 1,891 eligible (publication-type gate, PMCID present, not retracted) → 1,837 with usable PMC full text → 1,669 with ≥4 of 6 sections → **1,594 with `pub_type == "article"`** (drops 64 reviews, 8 preprints, 2 errata, 1 other). Embedding vectors are computed only for these 1,594 papers, after all criteria pass. | **158 NIH INCLUDE-funded articles** tagged with provenance badge in citations
+**Current corpus:** **1,594 open-access original research articles**, published **1970 – September 2026** (earliest indexed paper: PMC6460451, 1970; the "1962" coverage figure quoted in earlier drafts belonged to the superseded May-2026 fetch and no 1962–1969 paper survives the current criteria) — the collection stores only papers that satisfy every criterion, so the stored count, the searchable count, and the `/health`/GUI count are the same number. Derivation from the 2026-09-02 PMC snapshot (`srv/nbs/1_download_ds_papers.ipynb` + `2_embed_and_index_ds_papers.ipynb`): 2,075 snapshot records → 1,891 eligible (publication-type gate, PMCID present, not retracted) → 1,837 with usable PMC full text → 1,669 with ≥4 of 6 sections → **1,594 with `pub_type == "article"`** (drops 64 reviews, 8 preprints, 2 errata, 1 other). Embedding vectors are computed only for these 1,594 papers, after all criteria pass. | **158 NIH INCLUDE-funded articles** tagged with provenance badge in citations
 **Sections indexed (stored):** Results, Discussion, Methods, Conclusion, Abstract, Introduction (**65,677 total vectors**) | **Active retrieval:** Results, Discussion, Methods, Conclusion only (**54,246 chunks**); Abstract/Introduction are stored but excluded from retrieval by the Milvus search filter. The `pub_type == "article"` query filter remains in place as a no-op safety net (everything stored is already an article)
 
 **Funding:** NIH INCLUDE Project — grant R01 HD109765  
@@ -94,7 +94,7 @@ The codebase is split into two top-level directories:
 - **`analysis/`** — analysis and evaluation notebooks with their own input/output
 
 ```
-T21_research_assistant_v7/
+T21_Research_Assistant/
 ├── README.md, ...                 # Project documentation
 │
 ├── srv/                                      # Server-side deployment
@@ -180,7 +180,7 @@ pydantic
 ### 1. Clone / navigate to the project
 
 ```bash
-cd /path/to/project/T21_research_assistant_v7/srv
+cd /path/to/project/T21_Research_Assistant/srv
 ```
 
 ### 2. Configure environment variables
@@ -242,7 +242,7 @@ curl http://localhost:19530/healthz
 ### Quick Start (both services at once)
 
 ```bash
-cd /path/to/project/T21_research_assistant_v7/srv
+cd /path/to/project/T21_Research_Assistant/srv
 
 # Start API + UI
 sudo docker compose up -d
@@ -277,7 +277,7 @@ so the container must be RECREATED with `up -d`. Use this after editing
 or an empty-collection recovery would restore the wrong corpus):
 
 ```bash
-cd /path/to/project/T21_research_assistant_v7/srv
+cd /path/to/project/T21_Research_Assistant/srv
 sudo docker compose up -d api ui && sleep 15 && \
 curl -s -X POST http://localhost:8698/cache/clear && echo " cache cleared" && \
 curl -s http://localhost:8698/health
@@ -337,9 +337,9 @@ the same `up -d` command again.
 Run from your **dev machine**:
 
 ```bash
-DEV_PROJECT=/path/to/T21_research_assistant_v7
+DEV_PROJECT=/path/to/T21_Research_Assistant
 REMOTE=<username>@<deployment-server>
-REMOTE_PATH=/path/on/server/T21_research_assistant_v7
+REMOTE_PATH=/path/on/server/T21_Research_Assistant
 
 # Transfer everything except git history, Milvus volumes, and Python caches
 rsync -avz --progress \
@@ -360,7 +360,7 @@ rsync -avz --progress \
 SSH into the server, then:
 
 ```bash
-cd /path/on/server/T21_research_assistant_v7/srv
+cd /path/on/server/T21_Research_Assistant/srv
 cp .env.example .env   # if starting fresh
 nano .env
 ```
@@ -425,22 +425,22 @@ print('Downloaded to:', snap)
 
 # Copy snapshot into project-local embed dir (replace <HASH> with output above)
 cp -rL ~/.cache/huggingface/hub/models--nvidia--llama-embed-nemotron-8b/snapshots/<HASH>/. \
-  /path/to/T21_research_assistant_v7/srv/local_hugging_face_model/embed/
+  /path/to/T21_Research_Assistant/srv/local_hugging_face_model/embed/
 ```
 
 **Sync to deployment server (~14 GB, use tmux/screen):**
 
 ```bash
 REMOTE=<username>@<deployment-server>
-REMOTE_SRV=$REMOTE:/path/on/server/T21_research_assistant_v7/srv
+REMOTE_SRV=$REMOTE:/path/on/server/T21_Research_Assistant/srv
 
 rsync -avz --progress \
-  /path/to/T21_research_assistant_v7/srv/local_hugging_face_model/embed/ \
+  /path/to/T21_Research_Assistant/srv/local_hugging_face_model/embed/ \
   $REMOTE_SRV/local_hugging_face_model/embed/
 
 # Also sync UI images (logos)
 rsync -avz --progress \
-  /path/to/T21_research_assistant_v7/srv/ui/images/ \
+  /path/to/T21_Research_Assistant/srv/ui/images/ \
   $REMOTE_SRV/ui/images/
 ```
 
@@ -465,7 +465,7 @@ sudo docker ps --filter name=milvus_shared
 
 # If all three containers are listed, skip to Step 4.
 # If none appear, start Milvus:
-cd /path/on/server/T21_research_assistant_v7/srv
+cd /path/on/server/T21_Research_Assistant/srv
 sudo docker compose -f docker-compose.milvus.yml up -d
 
 # Wait ~60 s then verify
@@ -482,7 +482,7 @@ curl http://localhost:19530/healthz   # → {"status":"ok"}
 ### Step 4 — Build and Deploy T21 App (API + UI)
 
 ```bash
-cd /path/on/server/T21_research_assistant_v7/srv
+cd /path/on/server/T21_Research_Assistant/srv
 
 # First deploy — build images and start
 sudo docker compose up -d --build
@@ -539,7 +539,7 @@ curl -sf http://localhost:8878/t21-res-assi/_stcore/health && echo "UI OK"
 #### Restart API (after editing `api/` files)
 
 ```bash
-cd /path/on/server/T21_research_assistant_v7/srv
+cd /path/on/server/T21_Research_Assistant/srv
 sudo docker compose restart api && sleep 15 && \
 curl -s -X POST http://localhost:8698/cache/clear && echo "Cache cleared" && \
 curl -s http://localhost:8698/health | python3 -c \
@@ -857,7 +857,7 @@ Run via `conda` on the deployment server:
 conda run -n dschat --no-capture-output python scripts/embed_and_insert.py \
     --input output/DS_PMC_05_2026 \
     --pickle-dir output/embeddings_pickle/DS_PMC_05_2026_deepinfra_2048 \
-    --compute 2>&1 | tee /tmp/t21v7_embed.log
+    --compute 2>&1 | tee /tmp/t21_embed.log
 ```
 
 - Resume-safe: already-pickled papers are skipped — safe to rerun after interruption
@@ -889,7 +889,7 @@ Then insert from pickles via the `data-processor` Docker service (preferred on t
 sudo docker compose --profile data run --rm data-processor \
     python scripts/embed_and_insert.py \
     --pickle-dir output/embeddings_pickle/DS_PMC_05_2026_deepinfra_2048 \
-    --insert 2>&1 | tee /tmp/t21v7_insert.log
+    --insert 2>&1 | tee /tmp/t21_insert.log
 ```
 
 Alternative (conda, outside Docker):
@@ -897,7 +897,7 @@ Alternative (conda, outside Docker):
 ```bash
 conda run -n dschat --no-capture-output python scripts/embed_and_insert.py \
     --pickle-dir output/embeddings_pickle/DS_PMC_05_2026_deepinfra_2048 \
-    --insert 2>&1 | tee /tmp/t21v7_insert.log
+    --insert 2>&1 | tee /tmp/t21_insert.log
 ```
 
 > To re-insert the **current production corpus** (the 2026-09-02 build) rather than a new corpus build, use the pickle dir given under *Quick Re-Insert* below.
@@ -942,7 +942,7 @@ else:
 sudo docker compose --profile data run --rm data-processor \
     python scripts/embed_and_insert.py \
     --pickle-dir output/embeddings_pickle/ds_include_2026-09-02_ge4sections_articles_deepinfra_2048 \
-    --insert 2>&1 | tee /tmp/t21v7_insert.log
+    --insert 2>&1 | tee /tmp/t21_insert.log
 
 # 4. Restart API, clear cache, verify vector count
 sudo docker compose restart api && sleep 15 && \

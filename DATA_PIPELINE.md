@@ -1,4 +1,4 @@
-# T21 Research Assistant v7: Complete Data Pipeline
+# T21 Research Assistant: Complete Data Pipeline
 ## PMID → XML → JSON → Embeddings → Milvus
 
 ---
@@ -123,7 +123,7 @@ TARGET_SECTIONS = ["Abstract", "Introduction", "Methods", "Results", "Discussion
 eligible = papers that have at least one section with content
 ```
 
-Result (v7 corpus selection): 1,655 papers stored: 1,501 legacy papers carried over from the corrected pre-v7 corpus (only those with 5+ sections; `srv/output/active_pmcids_1501_5plus_sections.txt`) + 389 newly ingested PMIDs (`scripts/ingest_pmids.py`, Aug 2026) minus 235 later purged (`srv/output/v7_new_388_purge_list.json`). All 1,655 have ≥1 target section. Of these, 1,602 are `pub_type=article` (plus 51 reviews and 2 preprints, stored but excluded from retrieval; see Stage 4).
+Result (corpus selection): 1,655 papers stored: 1,501 legacy papers carried over from the corrected previous corpus (only those with 5+ sections; `srv/output/active_pmcids_1501_5plus_sections.txt`) + 389 newly ingested PMIDs (`scripts/ingest_pmids.py`, Aug 2026) minus 235 later purged (`srv/output/v7_new_388_purge_list.json`). All 1,655 have ≥1 target section. Of these, 1,602 are `pub_type=article` (plus 51 reviews and 2 preprints, stored but excluded from retrieval; see Stage 4).
 
 ### Step 3b: Text Chunking
 
@@ -285,7 +285,7 @@ Note: The 28 incomplete documents above are all classified as "article" (pub_typ
    ├─ Validate section content (not empty/N/A)
    └─ Output: Sections embedded in JSON
 
-3. EMBED  (v7 selection: 1,501 legacy 5+-section papers + 389 new - 235 purged = 1,655)
+3. EMBED  (selection: 1,501 legacy 5+-section papers + 389 new - 235 purged = 1,655)
    Input:  1,655 selected JSON files
    │
    ├─ Filter: papers with ≥1 target section

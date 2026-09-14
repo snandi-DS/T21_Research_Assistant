@@ -1,4 +1,4 @@
-# DEPLOYMENT.md - T21 Research Assistant v7 (Docker, step-by-step)
+# DEPLOYMENT.md - T21 Research Assistant (Docker, step-by-step)
 
 Complete step-by-step guide for operating this project entirely through Docker on the
 deployment server. Every operation here runs in a container; no conda environment and
@@ -8,7 +8,7 @@ so no model weights are loaded locally).
 All commands run from the compose directory unless stated otherwise:
 
 ```bash
-cd /path/to/project/T21_research_assistant_v7/srv
+cd /path/to/project/T21_Research_Assistant/srv
 ```
 
 Related documents:
@@ -121,7 +121,7 @@ needs) — never commit it anywhere public.
 ```bash
 # From the dev machine
 REMOTE=<username>@<deployment-server>
-REMOTE_PATH=/path/on/server/T21_research_assistant_v7
+REMOTE_PATH=/path/on/server/T21_Research_Assistant
 
 rsync -avz --progress \
   --exclude='.git' \
@@ -130,7 +130,7 @@ rsync -avz --progress \
   --exclude='**/*.pyc' \
   --exclude='srv/local_hugging_face_model/' \
   --exclude='srv/hf_cache/' \
-  /path/to/project/T21_research_assistant_v7/ \
+  /path/to/project/T21_Research_Assistant/ \
   $REMOTE:$REMOTE_PATH/
 ```
 
@@ -262,7 +262,7 @@ source files and never `.env`, `docker-compose.yml`, or `volumes/`.
 
 ```bash
 REMOTE=<username>@<deployment-server>
-REMOTE_PATH=/path/on/server/T21_research_assistant_v7   # actual project path on the server
+REMOTE_PATH=/path/on/server/T21_Research_Assistant   # actual project path on the server
 
 # API code only (e.g. the 2026-09-11 citation-integrity fixes touched exactly these two files)
 rsync -avz --progress \
@@ -431,7 +431,7 @@ else:
 sudo docker compose --profile data run --rm data-processor \
     python scripts/embed_and_insert.py \
     --pickle-dir output/embeddings_pickle/ds_include_2026-09-02_ge4sections_articles_deepinfra_2048 \
-    --insert 2>&1 | tee /tmp/t21v7_insert.log
+    --insert 2>&1 | tee /tmp/t21_insert.log
 
 # 4. Restart API, clear cache, verify vector count
 sudo docker compose restart api && sleep 15 && \
@@ -468,8 +468,8 @@ nohup sudo docker compose --profile data run --rm data-processor \
     --medline input/<MEDLINE_export>.txt \
     --include-excel input/INCLUDE_Publications_by_2025-11-14.xlsx \
     --out-dir output/<json-dir> \
-    > /tmp/t21v7_fetch.log 2>&1 &
-tail -f /tmp/t21v7_fetch.log
+    > /tmp/t21_fetch.log 2>&1 &
+tail -f /tmp/t21_fetch.log
 ```
 
 Test first with `--limit 10`. Then top up INCLUDE-only papers (resume-safe):
@@ -490,7 +490,7 @@ sudo docker compose --profile data run --rm data-processor \
     python scripts/embed_and_insert.py \
     --input output/<json-dir> \
     --pickle-dir output/embeddings_pickle/<new-pickle-dir> \
-    --compute --insert 2>&1 | tee /tmp/t21v7_reindex.log
+    --compute --insert 2>&1 | tee /tmp/t21_reindex.log
 ```
 
 Step C: cut over. Point `.env` `MILVUS_COLLECTION` (and `MILVUS_DIM` if changed) at
