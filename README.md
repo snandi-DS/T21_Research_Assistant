@@ -1,5 +1,7 @@
 # T21 Research Assistant v7
 
+**Publication:** Nandi S, Sundararajan Z, Subirana-Granés M, Espinosa JM, Pividori M, Sullivan KD, Galbraith MD, Costello JC. *An AI-Powered Trisomy 21 Research Assistant.* bioRxiv (2026). doi: [10.64898/2026.06.08.730893](https://www.biorxiv.org/content/10.64898/2026.06.08.730893v1.full)
+
 A multi-agent Retrieval-Augmented Generation (RAG) system for evidence-based question answering over the **INCLUDE Publication Corpus** — a curated collection of Down Syndrome (Trisomy 21) research papers.
 
 ---
