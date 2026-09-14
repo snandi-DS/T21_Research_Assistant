@@ -1,0 +1,34 @@
+# Environment / secrets
+.env
+.env.*
+.vscode-upload.json
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.swp
+*~
+.DS_Store
+
+# Virtual environments
+venv/
+.venv/
+env/
+/srv/hf_cache
+/srv/local_hugging_face_model
+/srv/output
+/srv/logs
+/srv/volumes
+/srv/input
+/analysis/input
+/analysis/output
+.ipynb_checkpoints/
+.ipynb_checkpoints/

@@ -1,0 +1,15 @@
+# GPU override — merged automatically by start.sh when nvidia-smi is available.
+# Do NOT use this file directly; run:  ./start.sh
+#
+# On GPU systems:   docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+# On CPU systems:   docker compose -f docker-compose.yml up -d
+
+services:
+  api:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

@@ -1,0 +1,200 @@
+# ============================================
+# T21 Research Assistant v7 - PRODUCTION
+# ============================================
+# FILE: docker-compose.yml
+# MODE: Production / <deployment-server>
+#
+# WARNING: DOES NOT INCLUDE MILVUS
+# This file connects to an EXISTING Milvus instance.
+# Use this on bioinformatics server where Milvus is
+# already running.
+#
+# For LOCAL development or testing (without existing Milvus),
+# use docker-compose.yml instead!
+#
+# Deploys:
+#   [yes] FastAPI Backend (port 8698)
+#   [yes] Streamlit UI (port 8878)
+#   [yes] Ollama native on host (port 11434, nemotron-3-super already pulled)
+#   [yes] Data Processor (on-demand)
+#   [no] Milvus (connects to existing instance)
+#
+# Prerequisites:
+#   [yes] Milvus running on host (port 19530)
+#   [yes] Collection DS_INCLUDE_2026_09_02_DEEPINFRA_2048 exists
+#   [yes] .env configured: MILVUS_HOST=host.docker.internal
+#
+# Quick Start:
+#   1. Verify: curl http://localhost:19530/healthz
+#   2. Configure: nano .env  (edit API keys and settings)
+#   3. Deploy: sudo docker compose up -d --build
+#   4. Access: http://localhost:8878
+#
+# Management:
+#   - Start:    sudo docker compose up -d --build
+#   - Stop:     sudo docker compose down
+#   - Logs:     sudo docker compose logs -f
+#   - Restart:  sudo docker compose restart
+#   - Status:   sudo docker ps --format 'table {{.Names}}\t{{.Status}}'
+#
+# See README.md for full details
+# ============================================
+
+# Explicit project name — prevents collision with sibling projects whose
+# compose file also lives in a directory named "srv" (Compose defaults the
+# project name to the cwd basename, so two "srv/" directories otherwise
+# share one namespace and silently clobber each other's containers).
+name: t21_research_assistant_v7
+
+services:
+  # ============================================
+  # FastAPI Backend (v7)
+  # ============================================
+  api:
+    container_name: t21_res_assi_api
+    # Explicit unique image name — without it, Compose names the image
+    # <project>-<service>; pinning it here keeps the image namespace unique and
+    # independent of the project name (mirrors the container_name pinning).
+    image: t21_res_assi_api:v7
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api
+    ports:
+      - "8698:8698"
+    environment:
+      # IMPORTANT: Connect to EXISTING Milvus on host
+      - MILVUS_HOST=host.docker.internal
+      - MILVUS_PORT=19530
+      - MILVUS_URI=http://host.docker.internal:19530
+      - API_PORT=8698
+      - BACKEND_URL=http://api:8698
+      # Block any HuggingFace download attempts (air-gapped server)
+      - TRANSFORMERS_OFFLINE=1
+      - HF_DATASETS_OFFLINE=1
+      # Override model paths to project-local copies (mounted below)
+      # (unused while PROVIDER_EMBED=deepinfra — kept for rollback to local Nemotron)
+      - NEMOTRON_EMBED_MODEL=/app/local_hugging_face_model/embed
+      - NEMOTRON_RERANK_MODEL=/app/local_hugging_face_model/rerank
+      # Leave empty so the code auto-detects: cuda if GPU available, else cpu
+      - NEMOTRON_DEVICE=
+      # Auto-insert pickle dir — must match the ACTIVE collection's corpus, or an
+      # empty-collection recovery would silently restore the wrong corpus
+      - PICKLE_DIR=/app/output/embeddings_pickle/ds_include_2026-09-02_ge4sections_articles_deepinfra_2048
+      # - PICKLE_DIR=/app/output/embeddings_pickle/ds_include_2026-09-05_ge4sections_deepinfra_2048   # pre-purge (incl. 75 non-articles)
+      # - PICKLE_DIR=/app/output/embeddings_pickle/ds_include_2026-09-02_deepinfra_2048   # previous corpus (pre-selection)
+      # - PICKLE_DIR=/app/output/embeddings_pickle/v7_corpus_deepinfra_2048   # previous corpus
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./api:/app/api
+      - ./scripts:/app/scripts      # Keep embed_and_insert.py in sync (startup auto-insert path) — no rebuild needed
+      - ./input:/app/input
+      - ./output:/app/output
+      - ./logs:/app/logs
+      - ./nbs:/app/nbs
+      - ./hf_cache:/app/hf_cache    # Pre-downloaded HuggingFace model weights
+      - ./local_hugging_face_model:/app/local_hugging_face_model    # Project-local nvidia embed + rerank models
+    # Auto-insert logic is handled by the FastAPI startup event in api/main.py:
+    #   1. Waits for Milvus health (up to 3 min)
+    #   2. Checks collection entity count
+    #   3. If empty, runs embed_and_insert.py --insert from pickle dir
+    #   The API starts serving immediately; insert runs as a background coroutine.
+    networks:
+      - t21_res_assi_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "--max-time", "25", "http://localhost:8698/health"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 300s
+
+  # ============================================
+  # Streamlit UI (v7)
+  # ============================================
+  ui:
+    container_name: t21_res_assi_ui
+    image: t21_res_assi_ui:v7
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: ui
+    ports:
+      - "8878:8878"
+    environment:
+      # Point to API service
+      - BACKEND_URL=http://api:8698
+      - DEFAULT_TOPK=12
+      # Apache reverse proxy configuration (if needed)
+      - STREAMLIT_SERVER_BASE_URL_PATH=/t21-res-assi
+      # LLM-as-Judge (Ollama remote)
+      - OLLAMA_API_KEY=${OLLAMA_API_KEY}
+      - OLLAMA_REMOTE_BASE_URL=${OLLAMA_REMOTE_BASE_URL}
+    command: streamlit run ui/ui_streamlit_ds_chat.py --server.port 8878 --server.baseUrlPath /t21-res-assi
+    volumes:
+      - ./ui:/app/ui
+      - ./logs:/app/logs
+      - ./.env:/app/.env:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - t21_res_assi_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8878/t21-res-assi/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # Data Processor (Profile: data)
+  # For batch evaluation or data processing scripts
+  # Usage: sudo docker compose --profile data run --rm data-processor python scripts/batch_eval.py
+  # ============================================
+  data-processor:
+    container_name: t21_res_assi_data_processor
+    image: t21_res_assi_data_processor:v7
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: data-processor
+    profiles: ["data"]
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MILVUS_HOST=host.docker.internal
+      - MILVUS_PORT=19530
+      - MILVUS_URI=http://host.docker.internal:19530
+      # Block HuggingFace downloads (model weights are bind-mounted below)
+      - TRANSFORMERS_OFFLINE=1
+      - HF_DATASETS_OFFLINE=1
+      # Override model paths to bind-mounted project-local copies
+      - NEMOTRON_EMBED_MODEL=/app/local_hugging_face_model/embed
+      - NEMOTRON_RERANK_MODEL=/app/local_hugging_face_model/rerank
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./api:/app/api
+      - ./input:/app/input
+      - ./output:/app/output
+      - ./logs:/app/logs
+      - ./nbs:/app/nbs
+      - ./scripts:/app/scripts
+      - ./local_hugging_face_model:/app/local_hugging_face_model
+    networks:
+      - t21_res_assi_network
+    # No restart policy - run on demand
+
+# ============================================
+# Networks
+# ============================================
+networks:
+  t21_res_assi_network:
+    driver: bridge
+    name: t21_res_assi_network
