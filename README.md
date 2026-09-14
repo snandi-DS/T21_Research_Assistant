@@ -1286,6 +1286,12 @@ This project's `docker-compose.yml` now pins an explicit `name: t21_research_ass
 
 ---
 
+## AI Assistance
+
+This project utilized the AI assistant Claude, developed by Anthropic, during the development process. Its assistance included generating initial code snippets and improving documentation. All AI-generated content was reviewed, tested, and validated by human developers.
+
+---
+
 ## Disclaimer
 
 This tool is intended for **research and educational use only**. It does not provide medical advice. Always consult qualified clinicians for treatment decisions. Citations link to PubMed Central (PMC) for source verification.
