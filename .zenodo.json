@@ -1,18 +1,42 @@
 {
   "title": "T21 Research Assistant: An AI-Powered Trisomy 21 Research Assistant",
-  "description": "Section-aware, multi-agent retrieval-augmented generation (RAG) system for evidence-based question answering over the open-access Down syndrome (Trisomy 21) literature. Includes the data ingestion pipeline, the eight-stage LangGraph RAG pipeline, the Streamlit web interface, and the evaluation notebooks. This archive is the code version described in the Scientific Reports manuscript 'An AI-Powered Trisomy 21 Research Assistant'.",
+  "description": "Section-aware, multi-agent retrieval-augmented generation (RAG) system for evidence-based question answering over the open-access Down syndrome (Trisomy 21) literature. Includes the data ingestion pipeline, the eight-stage LangGraph RAG pipeline, the Streamlit web interface, and the evaluation notebooks. This archive is the code version described in the manuscript 'An AI-Powered Trisomy 21 Research Assistant'.",
   "upload_type": "software",
   "license": "Apache-2.0",
   "access_right": "open",
   "creators": [
-    {"name": "Nandi, Sutanu", "affiliation": "University of Colorado Anschutz Medical Campus"},
-    {"name": "Sundararajan, Zenitha", "affiliation": "University of Colorado Anschutz Medical Campus"},
-    {"name": "Subirana-Granés, Marc", "affiliation": "University of Colorado Anschutz Medical Campus"},
-    {"name": "Espinosa, Joaquin M.", "affiliation": "University of Colorado Anschutz Medical Campus"},
-    {"name": "Pividori, Milton", "affiliation": "University of Colorado Anschutz Medical Campus"},
-    {"name": "Sullivan, Kelly D.", "affiliation": "University of Colorado Anschutz Medical Campus"},
-    {"name": "Galbraith, Matthew D.", "affiliation": "University of Colorado Anschutz Medical Campus"},
-    {"name": "Costello, James C.", "affiliation": "University of Colorado Anschutz Medical Campus"}
+    {
+      "name": "Nandi, Sutanu",
+      "affiliation": "University of Colorado Anschutz Medical Campus"
+    },
+    {
+      "name": "Sundararajan, Zenitha",
+      "affiliation": "University of Colorado Anschutz Medical Campus"
+    },
+    {
+      "name": "Subirana-Granés, Marc",
+      "affiliation": "University of Colorado Anschutz Medical Campus"
+    },
+    {
+      "name": "Espinosa, Joaquin M.",
+      "affiliation": "University of Colorado Anschutz Medical Campus"
+    },
+    {
+      "name": "Pividori, Milton",
+      "affiliation": "University of Colorado Anschutz Medical Campus"
+    },
+    {
+      "name": "Sullivan, Kelly D.",
+      "affiliation": "University of Colorado Anschutz Medical Campus"
+    },
+    {
+      "name": "Galbraith, Matthew D.",
+      "affiliation": "University of Colorado Anschutz Medical Campus"
+    },
+    {
+      "name": "Costello, James C.",
+      "affiliation": "University of Colorado Anschutz Medical Campus"
+    }
   ],
   "keywords": [
     "Down syndrome",
